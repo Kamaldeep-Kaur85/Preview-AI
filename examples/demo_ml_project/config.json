@@ -1,0 +1,9 @@
+{
+    "model_path": "model.pkl",
+    "data_path": "dataset.csv",
+    "output_dir": "results/",
+    "batch_size": 32,
+    "debug": false,
+    "train_script": "train.py",
+    "eval_script": "evaluate.py"
+}

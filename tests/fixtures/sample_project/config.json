@@ -1,0 +1,6 @@
+{
+  "name": "sample_project",
+  "version": "1.0.0",
+  "model_file": "model.pkl",
+  "data_file": "dataset.csv"
+}
