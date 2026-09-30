@@ -1,0 +1,300 @@
+                     self._ai_ctx.setText(f"Context: {Path(sel_path).name}  |  AI: {b_stat['backend']} ({b_stat['accelerator']})")
++
+                 self._auto_index_if_needed(sel_path)
++
+                 if self._service.current_graph and Path(sel_path).is_file():
++
+                     self._start_impact_lookup(sel_path)
++
+             self._update_action_bar_state()
+ 
+         def _on_file_clicked(self, index: QModelIndex):
+             path = self._fs_model.filePath(index)
+             if path:
+                 self._selected_path = path
+                 self._update_preview(path)
+                 if hasattr(self._service, "assistant"):
+                     self._service.assistant.context.set_target(path)
+                 if self._ai_open:
+-                    b_stat = self._service.model_manager.get_status()
+-                    self._ai_ctx.setText(f"Context: {Path(path).name}  |  AI: {b_stat['backend']} ({b_stat['accelerator']})")
+-                self._auto_index_if_needed(path)
+-                # Fast background impact lookup
+-                if self._service.current_graph and Path(path).is_file():
+-                    self._start_impact_lookup(path)
+-            self._update_action_bar_state()
++                    self._ai_ctx.setText(f"Context: {Path(path).name}")
+ 
+         def _on_file_double_clicked(self, index: QModelIndex):
+             path = self._fs_model.filePath(index)
+             if not path:
+                 return
+             p = Path(path)
+             if p.is_dir():
+                 self._navigate_to(path)
+-            elif p.is_file():
+-                self._open_file(path)
+-
+-        # ── Context menu ──────────────────────────────────────────────────
+-        # ── Context menu ──────────────────────────────────────────────────
+-        def _show_context_menu(self, pos):
+-            index = self._file_view.indexAt(pos)
+-            menu = QMenu(self)
+-
+-            def act(label, slot, shortcut=None, enabled=True):
+-                a = QAction(label, menu)
+-                a.setEnabled(enabled)
+-                a.triggered.connect(slot)
+-                if shortcut:
+-                    a.setShortcut(shortcut)
+-                menu.addAction(a)
+-                return a
+-
+-            has_clip = bool(getattr(self, "_clipboard_path", None) and Path(self._clipboard_path).exists())
+-
+-            if index.isValid():
+-                path = self._fs_model.filePath(index)
+-                p = Path(path)
+-
+-                act("📂  Open\tEnter", lambda: self._open_file(path))
+-                act("🪟  Reveal in Windows Explorer", lambda: self._reveal_in_os_explorer(path))
+-                menu.addSeparator()
+-
+-                act("✂️  Cut\tCtrl+X", lambda: self._cut_selection(path))
+-                act("📋  Copy\tCtrl+C", lambda: self._copy_selection(path))
+-                act("📥  Paste\tCtrl+V", self._paste_selection, enabled=has_clip)
+-                act("✏️  Rename…\tF2", lambda: self._rename_file(path))
+-                act("🗑️  Delete…\tDel", lambda: self._delete_file(path))
+-                menu.addSeparator()
+-
+-                act("📦  Move to…", lambda: self._move_to_dialog(path))
+-                act("📂  Copy to…", lambda: self._copy_to_dialog(path))
+-                act("🔗  Copy as Path\tCtrl+Shift+C", lambda: self._copy_as_path(path))
+-                menu.addSeparator()
+-
+-                # New Submenu
+-                new_sub = menu.addMenu("➕  New")
+-                a_fld = QAction("📁  Folder\tCtrl+Shift+N", new_sub)
+-                a_fld.triggered.connect(self._new_folder)
+-                new_sub.addAction(a_fld)
+-
+-                a_doc = QAction("📄  Text Document", new_sub)
+-                a_doc.triggered.connect(lambda: self._new_file("New Document.txt"))
+-                new_sub.addAction(a_doc)
+-
+-                a_py = QAction("🐍  Python Script", new_sub)
+-                a_py.triggered.connect(lambda: self._new_file("script.py"))
+-                new_sub.addAction(a_py)
+-
+-                a_cfg = QAction("⚙️  Config File (.json)", new_sub)
+-                a_cfg.triggered.connect(lambda: self._new_file("config.json"))
+-                new_sub.addAction(a_cfg)
+-                menu.addSeparator()
+-
+-                # PreView AI Power Actions
+-                if p.is_dir():
+-                    act("⚡  Index as Project", lambda: self._start_scan(path))
+-                act("⚡  Simulate Impact", lambda: self._show_impact_for(path))
+-                act("📊  Show in Dependency Graph", lambda: self._show_deps_for(path))
+-                act("✨  Ask PreView AI", lambda: self._ask_ai_about(path))
+-                menu.addSeparator()
+-
+-                act("ℹ️  Properties\tAlt+Enter", lambda: self._show_properties(path))
+             else:
+-                # Clicked on blank space in current directory
+-                cur_dir = str(self._get_current_directory())
+-
+-                new_sub = menu.addMenu("➕  New")
+-                a_fld = QAction("📁  Folder\tCtrl+Shift+N", new_sub)
+-                a_fld.triggered.connect(self._new_folder)
+-                new_sub.addAction(a_fld)
+-
+-                a_doc = QAction("📄  Text Document", new_sub)
+-                a_doc.triggered.connect(lambda: self._new_file("New Document.txt"))
+-                new_sub.addAction(a_doc)
+-
+-                a_py = QAction("🐍  Python Script", new_sub)
+-                a_py.triggered.connect(lambda: self._new_file("script.py"))
+-                new_sub.addAction(a_py)
+-
+-                a_cfg = QAction("⚙️  Config File (.json)", new_sub)
+-                a_cfg.triggered.connect(lambda: self._new_file("config.json"))
+-                new_sub.addAction(a_cfg)
+-                menu.addSeparator()
+-
+-                act("📥  Paste\tCtrl+V", self._paste_selection, enabled=has_clip)
+-                menu.addSeparator()
+-
+-                act("⚡  Index Current Folder as Project", self._index_current_folder)
+-                act("🔄  Refresh\tF5", self._refresh)
+-                act("🪟  Open in Windows Explorer", lambda: self._reveal_in_os_explorer(cur_dir))
+-                menu.addSeparator()
+-                act("ℹ️  Folder Properties\tAlt+Enter", lambda: self._show_properties(cur_dir))
+-
+-            menu.exec(QCursor.pos())
++                self._selected_path = path
++                self._update_preview(path)
++                try:
++                    from PySide6.QtGui import QDesktopServices
++                    from PySide6.QtCore import QUrl
++                    QDesktopServices.openUrl(QUrl.fromLocalFile(path))
++                except Exception:
++                    pass
+ 
+         # ── Scanning ──────────────────────────────────────────────────────
++
+         def _start_scan(self, path_str: str):
++
+             p = Path(path_str).resolve()
++
+             if len(p.parts) <= 1 or p.parent == p:
++
+                 QMessageBox.warning(self, "Invalid Project Scope", "Cannot index an entire filesystem drive root as a project. Please select a specific project directory.")
++
+                 return
++
+             self._sim_btn.setEnabled(False)
++
+             self._exec_btn.setEnabled(False)
++
+             self._progress.show()
++
+             self._idx_status.setText("Indexing…")
++
+             self._log_stream(f"Indexing project: {path_str}")
++
+             self._status.showMessage(f"Indexing {path_str}…")
+ 
+             self._scan_worker = ScanWorker(self._service, path_str)
++
+             self._scan_worker.progress.connect(lambda m: self._log_stream(m))
++
+             self._scan_worker.finished.connect(self._on_scan_done)
++
+             self._scan_worker.start()
+ 
+         def _on_scan_done(self, ok: bool, msg: str):
++
+             self._progress.hide()
++
+             self._sim_btn.setEnabled(True)
++
+             if ok and self._service.current_graph:
++
+                 stats = self._service.get_graph_stats()
++
+                 self._stats_label.setText(
++
+                     f"Files: {stats['nodes']}   Relations: {stats['edges']}"
++
+                 )
++
+                 self._idx_status.setText(
++
+                     f"✓ Indexed  ({stats['nodes']} files, {stats['edges']} relations)"
++
+                 )
++
+                 self._log_stream(
++
+                     f"✓ Project indexed — {stats['nodes']} files, {stats['edges']} relationships"
++
+                 )
++
+                 self._status.showMessage(
++
+                     f"{self._service.project_root.name} — {stats['nodes']} files, {stats['edges']} relations"
++
+                 )
++
+                 self._update_graph_tab()
++
+                 self._populate_left_tree()
++
+                 # Update address bar badge
++
+                 if hasattr(self, "_current_dir") and self._current_dir:
++
+                     self._update_index_badge(self._current_dir)
++
+                 # Auto-start watcher
++
+                 if not self._service.watcher_active:
++
+                     self._start_watcher()
++
+                 # Trigger impact lookup for currently selected file now that index is ready
++
+                 if self._selected_path and Path(self._selected_path).is_file():
++
+                     self._start_impact_lookup(self._selected_path)
+ 
+                 # Resume pending simulation if requested
++
+                 if hasattr(self, "_pending_sim_intent") and self._pending_sim_intent:
++
+                     pending = self._pending_sim_intent
++
+                     self._pending_sim_intent = None
++
+                     self._intent_edit.setText(pending)
++
+                     self._run_simulation()
++
+             else:
++
+                 self._idx_status.setText("⚠ Indexing failed")
++
+                 self._log_stream(f"ERROR: {msg}")
++
+                 self._status.showMessage(f"Scan failed: {msg}")
+ 
+         # ── Watcher ───────────────────────────────────────────────────────
++
+         def _start_watcher(self):
++
+             def on_change(event: ChangeEvent, impact: ImpactResult):
++
+                 self.fs_change_signal.emit(event, impact)
+ 
+             ok = self._service.start_watcher(on_change)
++
+             if ok:
++
+                 self._monitor_dot.setText("⬤ MONITORING ON")
++
+                 self._monitor_dot.setStyleSheet(
++
+                     f"color:{C['green']}; font-size:9px; font-weight:bold;"
++
+                 )
++
+                 self._log_stream(f"⬤ Filesystem watcher started: {self._service.project_root}")
++
+             else:
++
+                 self._log_stream("⚠ Filesystem watcher unavailable (install watchdog)")
+ 
+         @Slot(object, object)
++
+         def _on_fs_change_ui(self, event: ChangeEvent, impact: ImpactResult):
++
+             pn = Path(event.path).name
++
+             on = Path(event.old_path).name if event.old_path else None
++
+             ev  = event.event_type.value
++
+             desc = f"{ev}: {on} → {pn}" if on else f"{ev}: {pn}"
++
+             self._log_stream(f"[USER MADE] {desc}")
++
+             self._log_stream(
++
+                 f"  ↳ Risk: {impact.risk.value}  |  {impact.confirmed_count} confirmed affected"
++
+             )
++
+             if impact.affected_files:
++
+                 self._log_stream(
