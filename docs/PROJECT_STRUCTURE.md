@@ -93,8 +93,8 @@ preview-ai/
 │   ├── INSTALLATION.md              ← Installation guide
 │   └── SYSTEM_REQUIREMENTS.md       ← Hardware/software requirements
 │
-├── build/                           ← PyInstaller build artifacts (generated)
-├── dist/                            ← Compiled executables (generated)
+├── build/                           ← Generated locally; not committed
+├── dist/                            ← Generated locally; not committed
 │   └── PreView-AI.exe
 │
 ├── scratch/                         ← Development scratch scripts (not production)
@@ -102,7 +102,7 @@ preview-ai/
 │   ├── test_step_by_step.py
 │   └── test_load_project.py
 │
-└── .cache/                          ← Runtime cache (generated)
+└── .cache/                          ← Generated locally; not committed
 ```
 
 ---
